@@ -20,13 +20,12 @@
  *          to call the class to ues which is integrated in extensions:
  *          i.e.: $base->getExtension('nusoap'); to get external library nusoap
  *
+ *          this is the 'normal' version
  */
-
-namespace PTFW;
 
 @define("DS", DIRECTORY_SEPARATOR);
 @define("ISINI", true);
-@define("_BASEDIR_", dirname(__FILE__));
+@define("_BASEDIR_", _BASEDIR_);
 
 class cBase {
 
@@ -53,7 +52,7 @@ class cBase {
      * to handle debug-messages
      */
     public function getDebug() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "debug" . DS . "current" . DS . "cDebug.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "debug" . DS . "current" . DS . "cDebug.inc.php");
         $debugObject = new cDebug();
         if(!is_object($debugObject)) { die("no debug-class installed - please contact your administrator"); }
         return $debugObject;
@@ -67,7 +66,7 @@ class cBase {
      * @return cConfiguration
      */
     public function getConfiguration() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "configuration" . DS . "current" . DS ."cConfiguration.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "configuration" . DS . "current" . DS ."cConfiguration.inc.php");
         $_moduleObject = new cConfiguration();
         if(!is_object($_moduleObject)) { die("no config-class installed - please contact your administrator"); }
         return $_moduleObject;
@@ -81,7 +80,7 @@ class cBase {
      * @return cLanguage
      */
     public function getLanguage() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "language" . DS . "current" . DS ."cLanguage.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "language" . DS . "current" . DS ."cLanguage.inc.php");
         $_moduleObject = new cLanguage();
         if(!is_object($_moduleObject)) { die("no language-class installed - please contact your administrator"); }
         return $_moduleObject;
@@ -95,7 +94,7 @@ class cBase {
      * @return cModule
      */
     public function getModuleClass() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "module" . DS . "current" . DS ."cModuleClass.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "module" . DS . "current" . DS ."cModuleClass.inc.php");
         $_moduleObject = new cModuleClass();
         if(!is_object($_moduleObject)) { die("no module-class installed - please contact your administrator - ".
                                              "maybe you are not allowed to install new modules"); }
@@ -110,7 +109,7 @@ class cBase {
      * @return cExtension
      */
     public function getExtensionClass() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "module" . DS . "current" . DS ."cExtensionClass.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "module" . DS . "current" . DS ."cExtensionClass.inc.php");
         $_extObject = new cExtensionClass();
         if(!is_object($_extObject)) { die("no extension-class installed - please contact your administrator - ".
                                           "maybe you are not allowed to install new extensions"); }
@@ -123,7 +122,7 @@ class cBase {
      * @return cBaseFile
      */
     public function getBaseFile() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "module" . DS . "current" . DS ."cBaseFile.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "module" . DS . "current" . DS ."cBaseFile.inc.php");
         $_moduleObject = new cBaseFile();
         if(!is_object($_moduleObject)) { die("no base-file-class installed - please contact your administrator"); }
         return $_moduleObject;
@@ -135,7 +134,7 @@ class cBase {
      * @return cBaseTar
      */
     public function getBaseTar() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "module" . DS . "current" . DS ."cBaseTar.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "module" . DS . "current" . DS ."cBaseTar.inc.php");
         $_moduleObject = new cBaseTar();
         if(!is_object($_moduleObject)) { die("no base-tar-class installed - please contact your administrator"); }
         return $_moduleObject;
@@ -147,7 +146,7 @@ class cBase {
      * @return cUpdateChecker
      */
     public function getUpdateChecker() {
-        include_once(dirname(__FILE__) . DS . "base" . DS . "update" . DS . "current" . DS ."cUpdateChecker.inc.php");
+        include_once(_BASEDIR_ . DS . "base" . DS . "update" . DS . "current" . DS ."cUpdateChecker.inc.php");
         $_updateCheckerObject = new cUpdateChecker();
         if(!is_object($_updateCheckerObject)) { die("no base-tar-class installed - please contact your administrator"); }
         return $_updateCheckerObject;
@@ -180,9 +179,7 @@ class cBase {
             $className = $this->_queryBaseClass($method);
             if($className != null) {
                 require_once($this->_includePath . DS . $className.".inc.php");
-                $content = file_get_contents($this->_includePath . DS . $className.".inc.php");
-                $nameSpace = $this->_byRegexp($content);
-                $obj = new $nameSpace."\\".$className();
+                $obj = new $className();
                 if(is_object($obj)) {
                     return $obj;
                 } else {
@@ -266,9 +263,9 @@ class cBase {
 
     private function _queryBaseClass($method, $currentDir = "") {
         $className = str_replace("get", "c", $method);
-        if($currentDir == "") { $currentDir = dirname(__FILE__) . DS . "modules"; }
+        if($currentDir == "") { $currentDir = _BASEDIR_ . DS . "modules"; }
         $this->getDebug()->deb(basename(__FILE__) . ":" . $method.": ".$currentDir, "MSG");
-        $content = file_get_contents(dirname(__FILE__) . DS . "index" . DS . "modules.idx");
+        $content = file_get_contents(_BASEDIR_ . DS . "index" . DS . "modules.idx");
         $lines = explode("\n", $content);
         for($count = 0; $count < count($lines); $count++) {
             if(substr($lines[$count], 0, 1) != ";" && strlen(trim($lines[$count])) > 0) {
@@ -307,17 +304,10 @@ class cBase {
         $keys = array_keys($_SESSION['_INI']['extensions']);
         for($count = 0; $count < count($keys); $count++) {
             $ext = $_SESSION['_INI']['extensions'][$keys[$count]];
-            if(file_exists(dirname(__FILE__) . "/external/" . $ext)) {
-                $_SESSION['_EXT'][$keys[$count]] = dirname(__FILE__) . "/external/" . $ext;
+            if(file_exists(_BASEDIR_ . "/external/" . $ext)) {
+                $_SESSION['_EXT'][$keys[$count]] = _BASEDIR_ . "/external/" . $ext;
             }
         }
-    }
-
-    private function _byRegexp($src) {
-        if (preg_match('#^namespace\s+(.+?);$#sm', $src, $m)) {
-            return $m[1];
-        }
-        return null;
     }
 }
 
